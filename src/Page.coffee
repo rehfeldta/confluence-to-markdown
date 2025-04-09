@@ -43,7 +43,7 @@ class Page
   getTextToConvert: (pages) ->
 
     content = @formatter.getRightContentByFileName @content, @fileName
-    content = @formatter.fixBreadcrumbs content
+    content = @formatter.fixBreadcrumbs content, @heading
     content = @formatter.removeRelatedArticles content
     content = @formatter.removeBulletBlue content
     content = @formatter.removeDownloadAll content

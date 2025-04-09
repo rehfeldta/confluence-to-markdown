@@ -56,11 +56,12 @@ class Formatter
       $content.find selector.join ', '
 
   ###*
-  # Transforms the breadcrumb list into a paragraph element with Markdown links, prepending a custom crumb.
+  # Transforms the breadcrumb list into a paragraph element with Markdown links, prepending a homepage crum to a readme document one folder up.
   # @param {cheerio obj} $content Content of a file
+  # @param headingText current file heading
   # @return {cheerio obj} Updated content with breadcrumbs as a paragraph
   ###
-  fixBreadcrumbs: ($content, customCrumb = 'Home') ->
+  fixBreadcrumbs: ($content, headingText) ->
     $ = @_cheerio
     breadcrumbs = $content.find('#breadcrumb-section #breadcrumbs')
     breadcrumbMarkdown = "<a href=\"../README.md\">Home</a> > " # Prepend custom crumb
@@ -69,9 +70,9 @@ class Formatter
       href = link.attr('href')
       text = link.text()
       breadcrumbMarkdown += "<a href=\"#{href}\">#{text}</a> > "
-    breadcrumbMarkdown = breadcrumbMarkdown.trim().slice(0, -2) # Remove trailing arrow
+    breadcrumbMarkdown += headingText
     breadcrumbParagraph = $("<p id=\"breadcrumbs\">#{breadcrumbMarkdown}</p>")
-    breadcrumbs.replaceWith breadcrumbParagraph # Replace breadcrumbs with formatted paragraph
+    breadcrumbs.replaceWith breadcrumbParagraph # Replace original breadcrumb with new paragraph element
     $content
 
   ###*
