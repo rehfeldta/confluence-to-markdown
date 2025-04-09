@@ -41,7 +41,13 @@ class Page
   # @return {string} Content of a file parsed to MD
   ###
   getTextToConvert: (pages) ->
+
     content = @formatter.getRightContentByFileName @content, @fileName
+    content = @formatter.fixBreadcrumbs content
+    content = @formatter.removeRelatedArticles content
+    content = @formatter.removeBulletBlue content
+    content = @formatter.removeDownloadAll content
+    content = @formatter.cleanImageAttachments content
     content = @formatter.fixHeadline content
     content = @formatter.fixIcon content
     content = @formatter.fixEmptyLink content

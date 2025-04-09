@@ -3,9 +3,10 @@ class App
   # @link http://hackage.haskell.org/package/pandoc For options description
   @outputTypesAdd = [
     'markdown_github' # use GitHub markdown variant
-    'blank_before_header' # insert blank line before header
-#    'mmd_link_attributes' # use MD syntax for images and links instead of HTML
-#    'link_attributes' # use MD syntax for images and links instead of HTML
+    # 'blank_before_header' # insert blank line before header
+    # 'mmd_link_attributes' # use MD syntax for images and links instead of HTML
+    # 'link_attributes' # use MD syntax for images and links instead of HTML
+    # 'markdown'
   ]
 
   @outputTypesRemove = [
@@ -67,6 +68,7 @@ class App
     fullOutFileName = @_path.join dirOut, page.space, page.fileNameNew
 
     @logger.info 'Making Markdown ... ' + fullOutFileName
+    @logger.info 'test'
     @writeMarkdownFile text, fullOutFileName
     @utils.copyAssets @utils.getDirname(page.path), @utils.getDirname(fullOutFileName)
     @logger.info 'Done\n'
@@ -89,6 +91,7 @@ class App
       @pandocOptions +
       ' -o "' + fullOutFileName + '"' +
       ' "' + tempInputFile + '"'
+    @logger.debug(command)
     out = @_exec command, cwd: fullOutDirName
     @logger.error out.stderr if out.status > 0
     @_fs.unlinkSync tempInputFile

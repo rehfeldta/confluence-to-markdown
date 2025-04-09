@@ -81,6 +81,7 @@ class Utils
     # *  (asterisk)
     #    (other punctuation, while not strictly invalid, can lead to errors if copy-pasting filenames into shells or scripts)
     # Finally, collapse multiple contiguous underscores into a single underscore
+    # TODO: This should be used to rename local fiel paths in the formatter.
     name.replace(/[\s<>()\[\]{}:;'`"\/\\|?\*~!@#$%^&,]/g, '_').replace(/__+/g, '_')
 
 

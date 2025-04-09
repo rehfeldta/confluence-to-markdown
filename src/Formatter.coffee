@@ -48,11 +48,110 @@ class Formatter
         .find('#main-content>.confluenceTable').remove().end() # Removes arbitrary table located on top of index page
     else
       selector = [
+        '#breadcrumb-section' # Include breadcrumb section
         '#main-content'
         '.pageSection.group:has(.pageSectionHeader>#attachments)'
         '.pageSection.group:has(.pageSectionHeader>#comments)'
       ]
       $content.find selector.join ', '
+
+  ###*
+  # Transforms the breadcrumb list into a paragraph element with Markdown links, prepending a custom crumb.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content with breadcrumbs as a paragraph
+  ###
+  fixBreadcrumbs: ($content, customCrumb = 'Home') ->
+    $ = @_cheerio
+    breadcrumbs = $content.find('#breadcrumb-section #breadcrumbs')
+    breadcrumbMarkdown = "<a href=\"../README.md\">Home</a> > " # Prepend custom crumb
+    breadcrumbs.find('li').each (i, el) =>
+      link = $(el).find('a')
+      href = link.attr('href')
+      text = link.text()
+      breadcrumbMarkdown += "<a href=\"#{href}\">#{text}</a> > "
+    breadcrumbMarkdown = breadcrumbMarkdown.trim().slice(0, -2) # Remove trailing arrow
+    breadcrumbParagraph = $("<p id=\"breadcrumbs\">#{breadcrumbMarkdown}</p>")
+    breadcrumbs.replaceWith breadcrumbParagraph # Replace breadcrumbs with formatted paragraph
+    $content
+
+  ###*
+  # Removes <h2> elements with an id ending in "-Relatedarticles" and the subsequent <ul> with class "content-by-label".
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content without the specified <h2> and <ul> elements
+  ###
+  removeRelatedArticles: ($content) ->
+    $ = @_cheerio
+    $content.find('h2').each (i, el) =>
+      if $(el).attr('id')?.endsWith('-Relatedarticles')
+        nextUl = $(el).next('ul.content-by-label')
+        @logger.debug("Removing related articles")
+        $(el).remove() # Remove the <h2> element
+        nextUl.remove() # Remove the subsequent <ul> element
+    $content
+
+    ###*
+  # Removes <img> elements with the bullet_blue.gif src attribute.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content without the specified <img> elements
+  ###
+  removeBulletBlue: ($content) ->
+    $ = @_cheerio
+    $content.find('img').each (i, el) =>
+      if $(el).attr('src') == 'images/icons/bullet_blue.gif'
+        @logger.debug("Removing bullet_blue icon")
+        $(el).remove()
+    $content
+
+  
+  ###*
+  # Removes download all button.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content without the specified <img> elements
+  ###
+  removeDownloadAll: ($content) ->
+    $ = @_cheerio
+    $content.find('a').each (i, el) =>
+      if $(el).attr('class') == 'download-all-link'
+        @logger.debug("Removing download all icon")
+        $(el).remove()
+    $content
+
+  # TODO: This doesn't work. Try to fix if this strategy seems useful
+  ###*
+  # Removes <a> elements in the attachments section if their href matches any img src in the main content,
+  # along with the preceding <img> and <br> elements.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content with cleaned attachments section
+  ###
+  cleanImageAttachments: ($content) ->
+    $ = @_cheerio
+
+    # Collect all image sources from the main content
+    imageSrcs = []
+    @logger.debug("Images")
+    $content.find('img').each (i, el) =>
+      @logger.debug($(el).attr('src'))
+      imageSrcs.push($(el).attr('src'))
+
+    # Find the attachments section
+    attachmentsSection = $content.find('.pageSection.group').filter (i, el) ->
+      $(el).find('h2#attachments').length > 0
+
+    # Within the attachments section, find the greybox div
+    greybox = attachmentsSection.find('.greybox')
+
+    # Remove <a> elements in the greybox if their href matches any image src
+    @logger.debug("Attachments")
+    greybox.find('a').each (i, el) =>
+      @logger.debug($(el).attr('href'))
+      href = $(el).attr('href')
+      if href in imageSrcs
+        # Remove the <a> element and its associated <img> and <br> elements
+        $(el).prev('img').remove() # Remove the preceding <img>
+        $(el).next('br').remove()  # Remove the following <br>
+        $(el).remove()             # Remove the <a> element
+
+    $content
 
 
   ###*
@@ -183,7 +282,8 @@ class Formatter
       .find('[id$="Recentspaceactivity"], [id$=Spacecontributors]').parent().remove()
       .end().end()
 
-
+  # TODO: This is not correctly fixing local links. Links should drop everything prior to the article name and replace all white space characters with "_"
+  # See: 
   ###*
   # Changes links to local HTML files to generated MD files.
   # @param {cheerio obj} $content Content of a file
