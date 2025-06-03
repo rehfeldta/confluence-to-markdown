@@ -81,7 +81,6 @@ class Utils
     # *  (asterisk)
     #    (other punctuation, while not strictly invalid, can lead to errors if copy-pasting filenames into shells or scripts)
     # Finally, collapse multiple contiguous underscores into a single underscore
-    # TODO: This should be used to rename local fiel paths in the formatter.
     name.replace(/[\s<>()\[\]{}:;'`"\/\\|?\*~!@#$%^&,]/g, '_').replace(/__+/g, '_')
 
 
@@ -106,16 +105,19 @@ class Utils
       for page in pages
         if baseName == page.fileBaseName
           if space == page.space
-            return page.fileNameNew.replace '.md', '' # gitit requires link to pages without .md extension
+            # return page.fileNameNew.replace '.md', '' # gitit requires link to pages without .md extension
+            return page.fileNameNew
           else
-            return page.spacePath.replace '.md', '' # gitit requires link to pages without .md extension
+            # return page.spacePath.replace '.md', '' # gitit requires link to pages without .md extension
+            return page.spacePath
 
     # link to confluence pageId
     else if matches = href.match /.*pageId=(\d+).*/
       pageId = matches[1]
       for page in pages
         if pageId == page.fileBaseName
-          return page.spacePath.replace '.md', '' # gitit requires link to pages without .md extension
+          # return page.spacePath.replace '.md', '' # gitit requires link to pages without .md extension
+          return page.spacePath
 
     # link outside
     else

@@ -41,7 +41,10 @@ class Page
   # @return {string} Content of a file parsed to MD
   ###
   getTextToConvert: (pages) ->
-
+    # TODO:Need to handle the below
+    # - Remove "Expand Source" for scripts: e.g., Maintenance Mode
+    # - Reformat hyperlinks in tables: eg., Refresh Database Password
+    # - Table headers are being treated as the first row in markdown conversion instead of as headers: e.g., Refresh Database Password
     content = @formatter.getRightContentByFileName @content, @fileName
     content = @formatter.fixBreadcrumbs content, @heading
     content = @formatter.removeRelatedArticles content
