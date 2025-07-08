@@ -55,6 +55,7 @@ class Formatter
       ]
       $content.find selector.join ', '
 
+
   ###*
   # Transforms the breadcrumb list into a paragraph element with Markdown links, prepending a homepage crum to a readme document one folder up.
   # @param {cheerio obj} $content Content of a file
@@ -74,6 +75,8 @@ class Formatter
     breadcrumbParagraph = $("<p id=\"breadcrumbs\">#{breadcrumbMarkdown}</p>")
     breadcrumbs.replaceWith breadcrumbParagraph # Replace original breadcrumb with new paragraph element
     $content
+
+
 
   ###*
   # Removes <h2> elements with an id ending in "-Relatedarticles" and the subsequent <ul> with class "content-by-label".
@@ -153,6 +156,79 @@ class Formatter
         $(el).remove()             # Remove the <a> element
 
     $content
+
+    ###*
+  # Converts <a> elements within <td> elements to Markdown formatted hyperlinks.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content with anchors converted to Markdown
+  ###
+  fixAnchors: ($content) ->
+    $ = @_cheerio
+    $content.find('a').each (i, el) =>
+      link = $(el)
+      href = link.attr('href')
+      text = link.text()
+      cleanLink = "<a href=\"#{href}\">#{text}</a>"
+      link.replaceWith cleanLink
+    $content
+
+    ###*
+  # Removes <col> elements with no inner HTML or text, and then removes <colgroup> elements that are empty.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content with cleaned <col> and <colgroup> elements
+  ###
+  removeEmptyColGroup: ($content) ->
+    $ = @_cheerio
+
+    # Remove <col> elements with no inner HTML or text
+    $content.find('col').each (i, el) =>
+      col = $(el)
+      if col.html().trim() == '' and col.text().trim() == ''
+        # console.log("remove ", col)
+        col.remove()
+
+    # Remove <colgroup> elements that are empty after <col> removal
+    $content.find('colgroup').each (i, el) =>
+      colgroup = $(el)
+      if colgroup.html().trim() == '' and colgroup.text().trim() == ''
+        # console.log("remove ", colgroup)
+        colgroup.remove()
+    $content
+
+    ###*
+  # Moves the first <tr> element of every table's <tbody> to a <thead> if all its children are <th> elements.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Updated content with fixed table headers
+  ###
+  fixTableHeaders: ($content) ->
+    $ = @_cheerio
+
+    # Iterate over each table
+    $content.find('table').each (i, table) =>
+      tbody = $(table).find('tbody').first()
+      firstTr = tbody.find('tr').first()
+
+      # Check if all children of the first <tr> are <th> elements
+      allTh = firstTr.children().toArray().every (child) ->
+        $(child).is('th')
+
+      if allTh
+        # Create a <thead> element and move the <tr> into it
+        thead = $('<thead></thead>')
+        thead.append(firstTr)
+        $(table).prepend(thead) # Add the <thead> before the <tbody>
+
+    $content
+
+
+
+    ###*
+  # Removes expand source span inside code blocks.
+  # @param {cheerio obj} $content Content of a file
+  # @return {cheerio obj} Cheerio object
+  ###
+  fixCodeBlock: ($content) ->
+    @_removeElement $content, 'span.expand-control'
 
 
   ###*
@@ -333,6 +409,20 @@ class Formatter
     $content
       .find(selector).each (i, el) =>
         $(el).replaceWith $(el).text()
+      .end()
+
+
+  ###*
+  # Removes element by selector and leaves only its text content
+  # @param {cheerio obj} $content Content of a file
+  # @param {string} selector Selector of an element
+  # @return {cheerio obj} Cheerio object
+  ###
+  _removeElement: ($content, selector) ->
+    $ = @_cheerio
+    $content
+      .find(selector).each (i, el) =>
+        $(el).remove()
       .end()
 
 

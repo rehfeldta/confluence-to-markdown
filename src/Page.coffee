@@ -43,11 +43,12 @@ class Page
   getTextToConvert: (pages) ->
     # TODO:Need to handle the below
     # - Add breadcrumb to index.md
-    # - Remove "Expand Source" for scripts: e.g., Maintenance Mode
-    # - Reformat hyperlinks in tables: eg., Refresh Database Password
-    # - Table headers are being treated as the first row in markdown conversion instead of as headers: e.g., Refresh Database Password
     content = @formatter.getRightContentByFileName @content, @fileName
     content = @formatter.fixBreadcrumbs content, @heading
+    content = @formatter.fixAnchors content
+    content = @formatter.fixCodeBlock content
+    content = @formatter.fixTableHeaders content
+    content = @formatter.removeEmptyColGroup content
     content = @formatter.removeRelatedArticles content
     content = @formatter.removeBulletBlue content
     content = @formatter.removeDownloadAll content
